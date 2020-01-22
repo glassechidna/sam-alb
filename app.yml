@@ -1,4 +1,15 @@
 Transform: "AWS::Serverless-2016-10-31"
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: sam-alb
+    Description: Support for Application Load Balancers in the AWS SAM framework
+    SemanticVersion: "0.1.0"
+    Author: Glass Echidna
+    LicenseUrl: LICENSE.txt
+    ReadmeUrl: README.md
+    Labels: ['cfn', 'macro', 'cloudformation', 'lambda', 'serverless', 'alb', 'loadbalancer', 'sam']
+    HomePageUrl: https://github.com/glassechidna/sam-alb
+    SourceCodeUrl: https://github.com/glassechidna/sam-alb
 Resources:
   Function:
     Type: AWS::Serverless::Function

@@ -36,8 +36,8 @@ API Gateway REST APIs and HTTP APIs:
 This operates as a CloudFormation [macro][macro]. That means you must "install"
 it into your account (on a regional basis) before you can use it in your stacks.
 
-**TODO**: Here I will write about how you can install it from the 
-[Serverless App Repository][sar]. Need to work that out first.
+The app is installable through the [Serverless App Repository][sar]. It's named
+`sam-alb` and ARN is `arn:aws:serverlessrepo:us-east-1:607481581596:applications/sam-alb`.
 
 ## Usage
 
@@ -121,7 +121,7 @@ The following is planned:
 [gh-issue]: https://github.com/awslabs/serverless-application-model/issues/721
 [breakdown]: https://serverless-training.com/articles/save-money-by-replacing-api-gateway-with-application-load-balancer/
 [macro]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-macros.html
-[sar]: https://aws.amazon.com/serverless/serverlessrepo/
+[sar]: https://console.aws.amazon.com/lambda/home?region=us-east-1#/create/app?applicationId=arn:aws:serverlessrepo:us-east-1:607481581596:applications/sam-alb
 [listener]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-listener.html
 [cfn-oidc]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticloadbalancingv2-listenerrule-authenticateoidcconfig.html
 [well-known]: https://ldapwiki.com/wiki/Openid-configuration
