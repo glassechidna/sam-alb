@@ -1,0 +1,57 @@
+Transform: ["SamAlb", "AWS::Serverless-2016-10-31"]
+Parameters:
+  ListenerArn:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /SamAlbExample/ListenerArn
+Resources:
+  FunctionA:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: python3.7
+      Events:
+        Alb:
+          Type: ALB
+          Properties:
+            Oidc:
+              ClientId: '{{resolve:secretsmanager:GoogleOidc:SecretString:ClientId}}'
+              ClientSecret: '{{resolve:secretsmanager:GoogleOidc:SecretString:ClientSecret}}'
+              Issuer: https://accounts.google.com
+            Priority: 50
+            ListenerArn: !Ref ListenerArn
+            Conditions:
+              Host: [alb.ge.cx]
+      InlineCode: |
+        import json
+
+        def handler(event, context):
+            return {
+                "isBase64Encoded": False,
+                "statusCode": 200,
+                "statusDescription": "200 OK",
+                "headers": {"Content-Type": "application/json"},
+                "body": json.dumps(event, default=str)
+            }
+  FunctionB:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: python3.7
+      Events:
+        PathAlb:
+          Type: ALB
+          Properties:
+            Priority: 30
+            ListenerArn: !Ref ListenerArn
+            Conditions:
+              Host: [alb.ge.cx]
+              Path: [/example]
+      InlineCode: |
+        def handler(event, context):
+            return {
+                "isBase64Encoded": False,
+                "statusCode": 200,
+                "statusDescription": "200 OK",
+                "headers": {"Content-Type": "text/plain"},
+                "body": "Goodbye from Lambda"
+            }

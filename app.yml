@@ -1,0 +1,15 @@
+Transform: "AWS::Serverless-2016-10-31"
+Resources:
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./sam-alb
+      Handler: sam-alb
+      AutoPublishAlias: live
+      Runtime: go1.x
+      Timeout: 60
+  Macro:
+    Type: AWS::CloudFormation::Macro
+    Properties:
+      FunctionName: !Ref Function
+      Name: SamAlb

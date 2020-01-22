@@ -1,0 +1,90 @@
+{
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Resources": {
+    "Function": {
+      "Properties": {
+        "AutoPublishAlias": "live",
+        "CodeUri": "./func",
+        "Events": {},
+        "Handler": "index.handler",
+        "MemorySize": 256,
+        "Runtime": "nodejs12.x",
+        "Timeout": 60
+      },
+      "Type": "AWS::Serverless::Function"
+    },
+    "FunctionAlbAlbListenerRule": {
+      "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
+      "Properties": {
+        "Actions": [
+          {
+            "Type": "authenticate-oidc",
+            "Order": 1,
+            "AuthenticateOidcConfig": {
+              "ClientId": "cid",
+              "ClientSecret": "csecret",
+              "AuthorizationEndpoint": "https://accounts.google.com/o/oauth2/v2/auth",
+              "Issuer": "https://accounts.google.com/",
+              "TokenEndpoint": "https://oauth2.googleapis.com/token",
+              "UserInfoEndpoint": "https://openidconnect.googleapis.com/v1/userinfo"
+            }
+          },
+          {
+            "Type": "forward",
+            "Order": 2,
+            "TargetGroupArn": {
+              "Ref": "FunctionAlbTargetGroup"
+            }
+          }
+        ],
+        "Conditions": [
+          {
+            "Field": "host-header",
+            "HostHeaderConfig": {
+              "Values": [
+                "example.com"
+              ]
+            }
+          }
+        ],
+        "ListenerArn": "abc",
+        "Priority": 50000
+      }
+    },
+    "FunctionAlbPermission": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "Function.Alias",
+            "Arn"
+          ]
+        },
+        "Principal": "elasticloadbalancing.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:targetgroup/*"
+        }
+      },
+      "Type": "AWS::Lambda::Permission"
+    },
+    "FunctionAlbTargetGroup": {
+      "DependsOn": [
+        "FunctionAlbPermission"
+      ],
+      "Properties": {
+        "TargetType": "lambda",
+        "Targets": [
+          {
+            "Id": {
+              "Fn::GetAtt": [
+                "Function.Alias",
+                "Arn"
+              ]
+            }
+          }
+        ]
+      },
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup"
+    }
+  }
+}

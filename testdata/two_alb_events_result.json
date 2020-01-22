@@ -1,0 +1,106 @@
+{
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Resources": {
+    "Function": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "index.handler",
+        "Runtime": "nodejs12.x",
+        "MemorySize": 256,
+        "CodeUri": "./func",
+        "Timeout": 60,
+        "AutoPublishAlias": "live",
+        "Events": {
+          "SomeApi": {
+            "Type": "HttpApi"
+          }
+        }
+      }
+    },
+    "FunctionAlbTargetGroup": {
+      "DependsOn": [
+        "FunctionAlbPermission"
+      ],
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+      "Properties": {
+        "TargetType": "lambda",
+        "Targets": [
+          {
+            "Id": {
+              "Fn::GetAtt": [
+                "Function.Alias",
+                "Arn"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "FunctionAlbHostEventListenerRule": {
+      "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
+      "Properties": {
+        "Priority": 30000,
+        "ListenerArn": "abc",
+        "Actions": [
+          {
+            "Type": "forward",
+            "TargetGroupArn": {
+              "Ref": "FunctionAlbTargetGroup"
+            }
+          }
+        ],
+        "Conditions": [
+          {
+            "Field": "host-header",
+            "HostHeaderConfig": {
+              "Values": [
+                "example.com"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "FunctionAlbPathEventListenerRule": {
+      "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
+      "Properties": {
+        "Priority": 40000,
+        "ListenerArn": "abc",
+        "Actions": [
+          {
+            "Type": "forward",
+            "TargetGroupArn": {
+              "Ref": "FunctionAlbTargetGroup"
+            }
+          }
+        ],
+        "Conditions": [
+          {
+            "Field": "path-pattern",
+            "PathPatternConfig": {
+              "Values": [
+                "/example"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "FunctionAlbPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "Principal": "elasticloadbalancing.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:targetgroup/*"
+        },
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "Function.Alias",
+            "Arn"
+          ]
+        }
+      }
+    }
+  }
+}

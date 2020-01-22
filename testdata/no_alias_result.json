@@ -1,0 +1,76 @@
+{
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Resources": {
+    "Function": {
+      "Properties": {
+        "CodeUri": "./func",
+        "Events": {},
+        "Handler": "index.handler",
+        "MemorySize": 256,
+        "Runtime": "nodejs12.x",
+        "Timeout": 60
+      },
+      "Type": "AWS::Serverless::Function"
+    },
+    "FunctionAlbAlbListenerRule": {
+      "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
+      "Properties": {
+        "Actions": [
+          {
+            "TargetGroupArn": {
+              "Ref": "FunctionAlbTargetGroup"
+            },
+            "Type": "forward"
+          }
+        ],
+        "Conditions": [
+          {
+            "Field": "host-header",
+            "HostHeaderConfig": {
+              "Values": [
+                "example.com"
+              ]
+            }
+          }
+        ],
+        "ListenerArn": "abc",
+        "Priority": 50000
+      }
+    },
+    "FunctionAlbPermission": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "Function",
+            "Arn"
+          ]
+        },
+        "Principal": "elasticloadbalancing.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:targetgroup/*"
+        }
+      },
+      "Type": "AWS::Lambda::Permission"
+    },
+    "FunctionAlbTargetGroup": {
+      "DependsOn": [
+        "FunctionAlbPermission"
+      ],
+      "Properties": {
+        "TargetType": "lambda",
+        "Targets": [
+          {
+            "Id": {
+              "Fn::GetAtt": [
+                "Function",
+                "Arn"
+              ]
+            }
+          }
+        ]
+      },
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup"
+    }
+  }
+}

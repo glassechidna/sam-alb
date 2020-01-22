@@ -1,0 +1,34 @@
+{
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Resources": {
+    "Function": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "index.handler",
+        "Runtime": "nodejs12.x",
+        "MemorySize": 256,
+        "CodeUri": "./func",
+        "Timeout": 60,
+        "AutoPublishAlias": "live",
+        "Events": {
+          "Alb": {
+            "Type": "ALB",
+            "Properties": {
+              "ListenerArn": "abc",
+              "Oidc": {
+                "ClientId": "cid",
+                "ClientSecret": "csecret",
+                "Issuer": "https://accounts.google.com/"
+              },
+              "Conditions": {
+                "Host": [
+                  "example.com"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
