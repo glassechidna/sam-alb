@@ -1,7 +1,8 @@
-on: [push, pull_request]
+on:
+  release: {}
 name: Release
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -23,12 +24,14 @@ jobs:
 
       - name: sam package
         uses: docker://awsteele/samcli
+        env:
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
         with:
           args: >
             sam package 
             --template-file app.yml 
             --output-template-file packaged.yml 
-            --s3-bucket sar-publish-ge
+            --s3-bucket $S3_BUCKET
 
       - name: sam publish
         uses: docker://awsteele/samcli
