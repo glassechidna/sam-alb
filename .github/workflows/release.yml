@@ -1,5 +1,6 @@
 on:
-  release: {}
+  push:
+    tags: ["*"]
 name: Release
 jobs:
   release:
