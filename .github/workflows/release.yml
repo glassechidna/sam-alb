@@ -29,11 +29,13 @@ jobs:
           S3_BUCKET: ${{ secrets.S3_BUCKET }}
         with:
           args: >
+            sh -c "
             sam package 
             --template-file app.yml 
             --output-template-file packaged.yml 
             --s3-bucket $S3_BUCKET
-
+            "
+            
       - name: sam publish
         uses: docker://awsteele/samcli
         with:
