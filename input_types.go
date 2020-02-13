@@ -39,9 +39,9 @@ type albEventVpcConfig struct {
 }
 
 type albEventConditions struct {
-	Host   []string
-	Path   []string
-	Method []string
-	Header map[string][]string
-	Ip     []string
+	Host   json.RawMessage
+	Path   json.RawMessage
+	Method json.RawMessage
+	Header map[string]json.RawMessage
+	Ip     json.RawMessage
 }

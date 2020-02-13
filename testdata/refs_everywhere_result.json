@@ -29,7 +29,21 @@
             "Field": "host-header",
             "HostHeaderConfig": {
               "Values": [
-                "example.com"
+                {
+                  "Ref": "domain"
+                }
+              ]
+            }
+          },
+          {
+            "Field": "http-header",
+            "HttpHeaderConfig": {
+              "HttpHeaderName": "X-Header",
+              "Values": [
+                "abc",
+                {
+                  "Ref": "headerval"
+                }
               ]
             }
           }

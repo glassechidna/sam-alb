@@ -35,19 +35,19 @@ type keyvaluePair struct {
 
 type cfnCondition struct {
 	Field                   string
-	HostHeaderConfig        *stringValues     `json:",omitempty"`
-	PathPatternConfig       *stringValues     `json:",omitempty"`
-	HttpRequestMethodConfig *stringValues     `json:",omitempty"`
-	SourceIpConfig          *stringValues     `json:",omitempty"`
+	HostHeaderConfig        *jsonValues       `json:",omitempty"`
+	PathPatternConfig       *jsonValues       `json:",omitempty"`
+	HttpRequestMethodConfig *jsonValues       `json:",omitempty"`
+	SourceIpConfig          *jsonValues       `json:",omitempty"`
 	HttpHeaderConfig        *httpHeaderValues `json:",omitempty"`
 }
 
-type stringValues struct {
-	Values []string
+type jsonValues struct {
+	Values json.RawMessage
 }
 
 type httpHeaderValues struct {
-	stringValues
+	jsonValues
 	HttpHeaderName string
 }
 
@@ -100,8 +100,8 @@ func calculatePriority(conds []cfnCondition) int {
 	*/
 
 	crc32q := crc32.MakeTable(0xD5828281)
-	cksum := func(val string, ceil int) int {
-		sum32 := crc32.Checksum([]byte(val), crc32q)
+	cksum := func(val json.RawMessage, ceil int) int {
+		sum32 := crc32.Checksum(val, crc32q)
 		return int(sum32) % ceil
 	}
 
@@ -109,24 +109,25 @@ func calculatePriority(conds []cfnCondition) int {
 
 	for _, cond := range conds {
 		if cond.HostHeaderConfig != nil && len(cond.HostHeaderConfig.Values) > 0 {
-			priority -= cksum(cond.HostHeaderConfig.Values[0], 49_000)
+			priority -= cksum(cond.HostHeaderConfig.Values, 49_000)
 		}
 
 		if cond.SourceIpConfig != nil && len(cond.SourceIpConfig.Values) > 0 {
-			priority -= cksum(cond.SourceIpConfig.Values[0], 49_000)
+			priority -= cksum(cond.SourceIpConfig.Values, 49_000)
 		}
 
 		if cond.PathPatternConfig != nil && len(cond.PathPatternConfig.Values) > 0 {
-			priority -= cksum(cond.PathPatternConfig.Values[0], 1_000)
+			priority -= cksum(cond.PathPatternConfig.Values, 1_000)
 		}
 
 		if cond.HttpRequestMethodConfig != nil && len(cond.HttpRequestMethodConfig.Values) > 0 {
-			priority -= cksum(cond.HttpRequestMethodConfig.Values[0], 100)
+			priority -= cksum(cond.HttpRequestMethodConfig.Values, 100)
 		}
 
-		if cond.HttpHeaderConfig != nil && len(cond.HttpHeaderConfig.Values) > 0 {
-			priority -= cksum(cond.HttpHeaderConfig.Values[0], 10)
-		}
+		panic("IMPLEMENT ME")
+		//if cond.HttpHeaderConfig != nil && len(cond.HttpHeaderConfig.Values) > 0 {
+		//	priority -= cksum(cond.HttpHeaderConfig.Values, 10)
+		//}
 	}
 
 	return priority
@@ -138,21 +139,21 @@ func convertConditions(input albEventConditions) []cfnCondition {
 	if len(input.Host) > 0 {
 		output = append(output, cfnCondition{
 			Field:            "host-header",
-			HostHeaderConfig: &stringValues{Values: input.Host},
+			HostHeaderConfig: &jsonValues{Values: input.Host},
 		})
 	}
 
 	if len(input.Path) > 0 {
 		output = append(output, cfnCondition{
 			Field:             "path-pattern",
-			PathPatternConfig: &stringValues{Values: input.Path},
+			PathPatternConfig: &jsonValues{Values: input.Path},
 		})
 	}
 
 	if len(input.Method) > 0 {
 		output = append(output, cfnCondition{
 			Field:                   "http-request-method",
-			HttpRequestMethodConfig: &stringValues{Values: input.Method},
+			HttpRequestMethodConfig: &jsonValues{Values: input.Method},
 		})
 	}
 
@@ -161,7 +162,7 @@ func convertConditions(input albEventConditions) []cfnCondition {
 			Field: "http-header",
 			HttpHeaderConfig: &httpHeaderValues{
 				HttpHeaderName: name,
-				stringValues:   stringValues{Values: values},
+				jsonValues:     jsonValues{Values: values},
 			},
 		})
 	}
@@ -169,7 +170,7 @@ func convertConditions(input albEventConditions) []cfnCondition {
 	if len(input.Ip) > 0 {
 		output = append(output, cfnCondition{
 			Field:          "source-ip",
-			SourceIpConfig: &stringValues{Values: input.Ip},
+			SourceIpConfig: &jsonValues{Values: input.Ip},
 		})
 	}
 

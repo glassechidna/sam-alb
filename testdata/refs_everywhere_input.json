@@ -19,8 +19,18 @@
               },
               "Conditions": {
                 "Host": [
-                  "example.com"
-                ]
+                  {
+                    "Ref": "domain"
+                  }
+                ],
+                "Header": {
+                  "X-Header": [
+                    "abc",
+                    {
+                      "Ref": "headerval"
+                    }
+                  ]
+                }
               }
             }
           }
