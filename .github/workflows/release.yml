@@ -13,8 +13,15 @@ jobs:
 
       - name: build
         run: go build -ldflags="-s -w" -o build/sam-alb
-      
-      - name: package
+
+      - name: aws login
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: sam package
         uses: docker://awsteele/samcli
         with:
           args: >
@@ -22,3 +29,8 @@ jobs:
             --template-file app.yml 
             --output-template-file packaged.yml 
             --s3-bucket sar-publish-ge
+
+      - name: sam publish
+        uses: docker://awsteele/samcli
+        with:
+          args: sam publish --template packaged.yml
