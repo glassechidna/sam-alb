@@ -1,0 +1,39 @@
+on:
+  release: {}
+name: Release
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Set up Go 1.13
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+
+      - name: build
+        run: go build -ldflags="-s -w" -o build/sam-alb
+
+      - name: aws login
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: sam package
+        uses: docker://awsteele/samcli
+        env:
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+        with:
+          args: >
+            sam package 
+            --template-file app.yml 
+            --output-template-file packaged.yml 
+            --s3-bucket $S3_BUCKET
+
+      - name: sam publish
+        uses: docker://awsteele/samcli
+        with:
+          args: sam publish --template packaged.yml
