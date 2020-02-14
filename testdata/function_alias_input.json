@@ -9,6 +9,7 @@
         "MemorySize": 256,
         "CodeUri": "./func",
         "Timeout": 60,
+        "AutoPublishAlias": "live",
         "Events": {
           "Alb": {
             "Type": "ALB",

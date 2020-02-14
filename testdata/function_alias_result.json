@@ -3,6 +3,7 @@
   "Resources": {
     "Function": {
       "Properties": {
+        "AutoPublishAlias": "live",
         "CodeUri": "./func",
         "Events": {},
         "Handler": "index.handler",
@@ -41,10 +42,7 @@
       "Properties": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": {
-          "Fn::GetAtt": [
-            "Function",
-            "Arn"
-          ]
+          "Ref": "Function.Alias"
         },
         "Principal": "elasticloadbalancing.amazonaws.com",
         "SourceArn": {
@@ -62,10 +60,7 @@
         "Targets": [
           {
             "Id": {
-              "Fn::GetAtt": [
-                "Function",
-                "Arn"
-              ]
+              "Ref": "Function.Alias"
             }
           }
         ]

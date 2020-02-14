@@ -27,10 +27,7 @@
         "Targets": [
           {
             "Id": {
-              "Fn::GetAtt": [
-                "Function.Alias",
-                "Arn"
-              ]
+              "Ref": "Function.Alias"
             }
           }
         ]
@@ -95,10 +92,7 @@
           "Fn::Sub": "arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:targetgroup/*"
         },
         "FunctionName": {
-          "Fn::GetAtt": [
-            "Function.Alias",
-            "Arn"
-          ]
+          "Ref": "Function.Alias"
         }
       }
     }

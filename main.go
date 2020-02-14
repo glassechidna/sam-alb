@@ -59,21 +59,21 @@ func (h *handler) handleAssociation(ctx context.Context, tf *templateFragment, p
 		pjName := fmt.Sprintf("%sAlbPermission", prop.Resource)
 		lrName := fmt.Sprintf("%sAlb%sListenerRule", prop.Resource, prop.EventName)
 
-		targetName := prop.Resource
+		target := targetFunctionJson(prop.Resource)
 		if len(prop.Alias) > 0 {
-			targetName += ".Alias"
+			target = targetAliasJson(prop.Resource + ".Alias")
 		}
 
 		if _, found := seen[prop.Resource]; !found {
 			seen[prop.Resource] = true
 
-			tg := targetGroupJson(prop.Resource, targetName, prop.Tags)
+			tg := targetGroupJson(prop.Resource, target, prop.Tags)
 			err := tf.PutResource(tgName, tg)
 			if err != nil {
 				return err
 			}
 
-			pj := permissionJson(targetName)
+			pj := permissionJson(target)
 			err = tf.PutResource(pjName, pj)
 			if err != nil {
 				return err

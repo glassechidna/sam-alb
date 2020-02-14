@@ -212,7 +212,7 @@ func trailingTagsJson(tags map[string]json.RawMessage) string {
 	return buf.String()
 }
 
-func targetGroupJson(functionName, targetName string, tags map[string]json.RawMessage) []byte {
+func targetGroupJson(functionName, target string, tags map[string]json.RawMessage) []byte {
 	return []byte(fmt.Sprintf(`
 		{
 			"DependsOn": ["%sAlbPermission"],
@@ -220,14 +220,22 @@ func targetGroupJson(functionName, targetName string, tags map[string]json.RawMe
 			"Properties": {
 				"TargetType": "lambda",
 				"Targets": [
-					{"Id": {"Fn::GetAtt": ["%s", "Arn"]}}
+					{"Id": %s}
 				]%s
 			}
 		}
-`, functionName, targetName, trailingTagsJson(tags)))
+`, functionName, target, trailingTagsJson(tags)))
 }
 
-func permissionJson(targetName string) []byte {
+func targetFunctionJson(functionName string) string {
+	return fmt.Sprintf(`{"Fn::GetAtt": ["%s", "Arn"]}`, functionName)
+}
+
+func targetAliasJson(aliasName string) string {
+	return fmt.Sprintf(`{"Ref": "%s"}`, aliasName)
+}
+
+func permissionJson(target string) []byte {
 	return []byte(fmt.Sprintf(`
 		{
 			"Type": "AWS::Lambda::Permission",
@@ -235,10 +243,10 @@ func permissionJson(targetName string) []byte {
 				"Action": "lambda:InvokeFunction",
 				"Principal": "elasticloadbalancing.amazonaws.com",
 				"SourceArn": {"Fn::Sub": "arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:targetgroup/*"},
-				"FunctionName": {"Fn::GetAtt": ["%s", "Arn"]}
+				"FunctionName": %s
 			}
 		}
-	`, targetName))
+	`, target))
 }
 
 func httpsListenerJson() []byte {

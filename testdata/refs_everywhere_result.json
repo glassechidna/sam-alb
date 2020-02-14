@@ -58,10 +58,7 @@
       "Properties": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": {
-          "Fn::GetAtt": [
-            "Function.Alias",
-            "Arn"
-          ]
+          "Ref": "Function.Alias"
         },
         "Principal": "elasticloadbalancing.amazonaws.com",
         "SourceArn": {
@@ -79,10 +76,7 @@
         "Targets": [
           {
             "Id": {
-              "Fn::GetAtt": [
-                "Function.Alias",
-                "Arn"
-              ]
+              "Ref": "Function.Alias"
             }
           }
         ]
