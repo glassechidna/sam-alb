@@ -19,7 +19,7 @@
         "Actions": [
           {
             "TargetGroupArn": {
-              "Ref": "FunctionAlbTargetGroup"
+              "Ref": "FunctionAlbTargetGroupmyref"
             },
             "Type": "forward"
           }
@@ -67,7 +67,7 @@
       },
       "Type": "AWS::Lambda::Permission"
     },
-    "FunctionAlbTargetGroup": {
+    "FunctionAlbTargetGroupmyref": {
       "DependsOn": [
         "FunctionAlbPermission"
       ],

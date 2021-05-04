@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -48,14 +49,17 @@ func (h *handler) Handle(ctx context.Context, input *MacroInput) (*MacroOutput, 
 }
 
 func (h *handler) handleAssociation(ctx context.Context, tf *templateFragment, props []albEventProperties) error {
-	seen := map[string]bool{}
-
 	for _, prop := range props {
 		if len(prop.ListenerArn) == 0 || prop.VpcConfig != nil {
 			return errors.New("TODO: support vpc config")
 		}
 
-		tgName := fmt.Sprintf("%sAlbTargetGroup", prop.Resource)
+		var listenerMap map[string]json.RawMessage
+		var listenerRef string
+		json.Unmarshal(prop.ListenerArn, &listenerMap)
+		json.Unmarshal(listenerMap["Ref"], &listenerRef)
+
+		tgName := fmt.Sprintf("%sAlbTargetGroup%s", prop.Resource, listenerRef)
 		pjName := fmt.Sprintf("%sAlbPermission", prop.Resource)
 		lrName := fmt.Sprintf("%sAlb%sListenerRule", prop.Resource, prop.EventName)
 
@@ -64,20 +68,16 @@ func (h *handler) handleAssociation(ctx context.Context, tf *templateFragment, p
 			target = targetAliasJson(prop.Resource + ".Alias")
 		}
 
-		if _, found := seen[prop.Resource]; !found {
-			seen[prop.Resource] = true
+		tg := targetGroupJson(prop.Resource, target, prop.Tags)
+		err := tf.PutResource(tgName, tg)
+		if err != nil {
+			return err
+		}
 
-			tg := targetGroupJson(prop.Resource, target, prop.Tags)
-			err := tf.PutResource(tgName, tg)
-			if err != nil {
-				return err
-			}
-
-			pj := permissionJson(target)
-			err = tf.PutResource(pjName, pj)
-			if err != nil {
-				return err
-			}
+		pj := permissionJson(target)
+		err = tf.PutResource(pjName, pj)
+		if err != nil {
+			return err
 		}
 
 		conds := convertConditions(prop.Conditions)
@@ -112,10 +112,11 @@ func (h *handler) handleAssociation(ctx context.Context, tf *templateFragment, p
 		}
 
 		lr := listenerRuleJson(rule)
-		err := tf.PutResource(lrName, lr)
+		err = tf.PutResource(lrName, lr)
 		if err != nil {
 			return err
 		}
+
 	}
 
 	return nil
